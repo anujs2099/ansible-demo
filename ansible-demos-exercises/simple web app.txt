@@ -1,0 +1,41 @@
+
+sudo yum install -y epel-release python36
+
+python3 --version
+
+curl -O https://bootstrap.pypa.io/get-pip.py
+
+sudo python3 get-pip.py --user
+
+pip --version
+
+sudo pip3 install flask flask-mysql
+
+sudo yum install wget -y
+
+wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+
+sudo rpm -ivh mysql-community-release-el7-5.noarch.rpm
+
+sudo yum update -y
+
+sudo yum -y install mysql-server
+
+sudo service mysql start
+
+
+# mysql -u root -p
+
+mysql> CREATE DATABASE employee_db;
+mysql> CREATE USER 'db_user'@'localhost' IDENTIFIED BY 'Passw0rd';
+mysql> GRANT ALL ON *.* to db_user@'localhost' IDENTIFIED BY 'Passw0rd';
+mysql> USE employee_db;
+mysql> CREATE TABLE employees (name VARCHAR(20));
+
+mysql> INSERT INTO employees VALUES ('JOHN');
+
+vi app.py # insert data from github
+
+FLASK_APP=app.py flask run --host=0.0.0.0
+
+

@@ -1,0 +1,92 @@
+-
+  name: Installation & configuraton of Firewalld
+  hosts: all
+  tasks:
+    - name: Install firewalld
+      yum:
+        name: firewalld
+    - name: Start & Enable firewalld
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+-
+  name: Installation & configuration of MariaDB
+  hosts: all
+  tasks:
+    - name: Install MariaDB
+      yum:
+        name: mariadb-server
+        state: latest
+    - name: Start & Enable MariaDB
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+    - name: Configure firewalld for Database
+      ansible.posix.firewalld:
+        port: 3306/tcp
+        permanent: yes
+        zone: public
+        state: enabled
+    - name: copy over configure-database.txt
+      copy:
+        src: /home/osboxes/ansible-demos-exercises/demo-project-1/configure-database.txt
+        dest: /home/osboxes/configure-database.txt
+    - name: copy over db-load-script.sql
+      copy:
+        src: /home/osboxes/ansible-demos-exercises/demo-project-1/db-load-script.sql
+        dest: /home/osboxes/db-load-script.sql
+    - name: Reload the Firewalld
+      command: 'firewall-cmd --reload'
+    - name: Configure Database
+      shell: mysql < /home/osboxes/configure-database.txt
+    - name: Load data into Database
+      shell: mysql < /home/osboxes/db-load-script.sql
+-
+  name: Deploy and Configure Web Server
+  hosts: all
+  tasks:
+    - name: Install httpd package
+      yum:
+        name: httpd
+        state: latest
+    - name: Start & Enable Web Server
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+    - name: Install php package
+      yum:
+        name: php
+        state: latest
+    - name: Install php-mysqlnd package
+      yum:
+        name: php-mysqlnd
+        state: latest
+    - name: Install git package
+      yum:
+        name: git
+        state: latest
+    - name: Configure firewalld for Web Server
+      ansible.posix.firewalld:
+        port: 80/tcp
+        permanent: yes
+        zone: public
+        state: enabled
+    - name: Reload the Firewalld
+      command: 'firewall-cmd --reload'
+    - name: Change DirectoryIndex index.html to DirectoryIndex index.php
+      command: sed -i 's/index.html/index.php/g' /etc/httpd/conf/httpd.conf
+    - name: Download code
+      git:
+        repo: 'https://github.com/kodekloudhub/learning-app-ecommerce.git'
+        dest: /var/www/html/
+        clone: yes
+        update: no
+    - name: Update index.php
+      command: sudo sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php
+    - name: Restart the Web server
+      service:
+        name: httpd
+        state: restarted
